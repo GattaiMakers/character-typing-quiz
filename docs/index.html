@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Character Typing Quiz</title>
+<style>
+  /* Reset & base */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    align-items: center;
+  }
+  #game {
+    background: #2a2a72;
+    max-width: 480px;
+    width: 100%;
+    border-radius: 12px;
+    padding: 30px 40px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    text-align: center;
+  }
+  h2 {
+    margin-bottom: 10px;
+    font-weight: 700;
+    letter-spacing: 1.1px;
+  }
+  p {
+    font-size: 1.1rem;
+    margin: 10px 0 25px 0;
+    font-weight: 600;
+    letter-spacing: 0.7px;
+  }
+  #timer {
+    font-weight: 900;
+    font-size: 1.6rem;
+    color: #ffdd57;
+  }
+  input[type="text"] {
+    width: 100%;
+    padding: 14px 18px;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    margin-bottom: 25px;
+    transition: box-shadow 0.3s ease;
+  }
+  input[type="text"]:focus {
+    box-shadow: 0 0 8px #ffdd57;
+  }
+  input[type="text"]:disabled {
+    background: #444974;
+    color: #ccc;
+    cursor: not-allowed;
+  }
+  #answers {
+    list-style: none;
+    padding: 0;
+    max-height: 220px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    border: 1px solid #444974;
+    border-radius: 8px;
+    background: #383e72;
+    text-align: left;
+  }
+  #answers li {
+    padding: 10px 15px;
+    border-bottom: 1px solid #52598d;
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: #d0e6ff;
+    transition: background 0.3s;
+  }
+  #answers li:last-child {
+    border-bottom: none;
+  }
+  #answers li:hover {
+    background: #4c54a4;
+  }
+  #score {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 25px;
+    color: #ffe066;
+  }
+  button {
+    background: #ffdd57;
+    border: none;
+    color: #2a2a72;
+    font-weight: 700;
+    padding: 14px 28px;
+    margin: 0 8px;
+    border-radius: 10px;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(255, 221, 87, 0.6);
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+  button:hover {
+    background: #ffe87f;
+    color: #1a1a50;
+  }
+  button:disabled {
+    background: #999;
+    cursor: not-allowed;
+    color: #666;
+    box-shadow: none;
+  }
+
+  /* Scrollbar for answer list */
+  #answers::-webkit-scrollbar {
+    width: 8px;
+  }
+  #answers::-webkit-scrollbar-track {
+    background: #2a2a72;
+    border-radius: 8px;
+  }
+  #answers::-webkit-scrollbar-thumb {
+    background: #ffdd57;
+    border-radius: 8px;
+  }
+</style>
+</head>
+<body>
+  <div id="game" role="main" aria-label="Character typing quiz game">
+    <h2>Type as many characters as you can!</h2>
+    <p>Time Left: <span id="timer">60</span> seconds</p>
+    <input
+      type="text"
+      id="input"
+      placeholder="Type a character name..."
+      aria-label="Type your answer here"
+      disabled
+      autocomplete="off"
+      spellcheck="false"
+    />
+    <ul id="answers" aria-live="polite" aria-relevant="additions"></ul>
+    <h3 id="score">Score: 0</h3>
+    <button id="startBtn" aria-pressed="false" aria-label="Start the quiz">Start Quiz</button>
+    <button id="resetBtn" aria-label="Reset the quiz">Reset Quiz</button>
+  </div>
+
+<script>
+  const correctAnswers = [
+    "Tommy", "Kimberly", "Billy", "Zack", "Trini",
+    "Jason", "Rocky", "Aisha", "Adam", "Kat"
+  ];
+
+  let guessed = [];
+  let score = 0;
+  let timeLeft = 60;
+  let interval;
+
+  const input = document.getElementById("input");
+  const answersList = document.getElementById("answers");
+  const timerDisplay = document.getElementById("timer");
+  const scoreDisplay = document.getElementById("score");
+  const startBtn = document.getElementById("startBtn");
+  const resetBtn = document.getElementById("resetBtn");
+
+  function startGame() {
+    clearInterval(interval);
+    guessed = [];
+    score = 0;
+    timeLeft = 60;
+    timerDisplay.textContent = timeLeft;
+    scoreDisplay.textContent = "Score: 0";
+    answersList.innerHTML = "";
+    input.disabled = false;
+    input.value = "";
+    input.focus();
+    startBtn.disabled = true;
+    startBtn.setAttribute("aria-pressed", "true");
+
+    interval = setInterval(() => {
+      timeLeft--;
+      timerDisplay.textContent = timeLeft;
+      if (timeLeft <= 0) {
+        endGame("Time's up!");
+      }
+    }, 1000);
+  }
+
+  function endGame(message) {
+    clearInterval(interval);
+    input.disabled = true;
+    startBtn.disabled = false;
+    startBtn.setAttribute("aria-pressed", "false");
+    alert(`${message} Final Score: ${score}`);
+  }
+
+  input.addEventListener("keyup", (e) => {
+    const guess = e.target.value.trim();
+    if (
+      correctAnswers.includes(guess) &&
+      !guessed.includes(guess)
+    ) {
+      guessed.push(guess);
+      score++;
+      const li = document.createElement("li");
+      li.textContent = guess;
+      answersList.appendChild(li);
+      scoreDisplay.textContent = "Score: " + score;
+      input.value = "";
+
+      if (guessed.length === correctAnswers.length) {
+        endGame("You got them all!");
+      }
+    }
+  });
+
+  startBtn.addEventListener("click", startGame);
+
+  resetBtn.addEventListener("click", () => {
+    clearInterval(interval);
+    guessed = [];
+    score = 0;
+    timeLeft = 60;
+    timerDisplay.textContent = timeLeft;
+    scoreDisplay.textContent = "Score: 0";
+    answersList.innerHTML = "";
+    input.disabled = true;
+    input.value = "";
+    startBtn.disabled = false;
+    startBtn.setAttribute("aria-pressed", "false");
+  });
+</script>
+</body>
+</html>
